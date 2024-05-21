@@ -1,0 +1,16 @@
+package io.github.aieducationbackend.dto;
+
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+public class TaskRequestDTO {
+
+    private String subject;
+    private String hobby;
+    private Integer numberOfTasks;
+
+}

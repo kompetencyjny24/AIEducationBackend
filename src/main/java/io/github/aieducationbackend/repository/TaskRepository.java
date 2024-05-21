@@ -1,11 +1,11 @@
 package io.github.aieducationbackend.repository;
 
-import io.github.aieducationbackend.entity.User;
+import io.github.aieducationbackend.entity.Task;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
-@Repository
-public interface UserRepository extends JpaRepository<User, Long> {
+import java.util.UUID;
 
-    User findByEmail(String email);
+@Repository
+public interface TaskRepository extends JpaRepository<Task, UUID> {
 }
