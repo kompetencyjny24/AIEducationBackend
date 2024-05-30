@@ -1,5 +1,6 @@
 package io.github.aieducationbackend.entity;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.ElementCollection;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -21,7 +22,11 @@ public class Task {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
+
+    @Column(length = 2048)
     private String prompt;
+
+    @Column(length = 2048)
     private String content;
     private String answer;
 

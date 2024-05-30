@@ -4,13 +4,13 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.List;
+
 @Data
-@NoArgsConstructor
 @AllArgsConstructor
-public class TaskRequestDTO {
+@NoArgsConstructor
+public class SubjectDTO {
 
-    private String subject;
-    private String subjectSection;
-    private String hobby;
-
+    private String name;
+    private List<String> sections;
 }
