@@ -24,14 +24,15 @@ public class TaskService {
 
     private static final String CHAT_MODEL = "gpt-3.5-turbo";
     private static final String ROLE = "user";
-    private static final String prompt = "Wygeneruj mi treść zadania z przedmiotu {SUBJECT} z działu \"{SUBJECT_SECTION}\". Nawiąż treścią zadania do hobby o tematyce {HOBBY}. Pod tym wygeneruj 2 podpowiedzi do zadania i na koniec napisz odpowiedź. Wypisz wszystko w formacie Zadanie: *tutaj napisz tresc zadania* zrób \n\n i Podpowiedź 1: *Tutaj wypisz tresc podpowiedzi 1* zrób \n\n i Podpowiedź 2: *Tutaj wypisz tresc podpowiedzi 2* zrób \n\n i Odpowiedź: *Tutaj wypisz tresc odpowiedzi*.";
+    private static final String PROMPT_SUFFIX = " Pod tym wygeneruj 2 podpowiedzi do zadania i na koniec napisz odpowiedź. Wypisz wszystko w formacie Zadanie: *tutaj napisz tresc zadania* zrób \n\n i Podpowiedź 1: *Tutaj wypisz tresc podpowiedzi 1* zrób \n\n i Podpowiedź 2: *Tutaj wypisz tresc podpowiedzi 2* zrób \n\n i Odpowiedź: *Tutaj wypisz tresc odpowiedzi*.";
+    private static final String PROMPT = "Wygeneruj mi treść zadania z przedmiotu {SUBJECT} z działu \"{SUBJECT_SECTION}\". Nawiąż treścią zadania do hobby o tematyce {HOBBY}.";
 
     private final ChatGptClient chatGptClient;
     private final TaskRepository taskRepository;
     private final TaskMapper taskMapper;
 
     public TaskDTO createTask(TaskRequestDTO taskRequestDTO) {
-        String prompt = prepareContent(taskRequestDTO);
+        String prompt = preparePrompt(taskRequestDTO);
 
         ChatGptApiRequestDTO chatGptApiRequestDto = ChatGptApiRequestDTO.builder()
                 .model(CHAT_MODEL)
@@ -57,11 +58,15 @@ public class TaskService {
         return taskMapper.taskToTaskDTO(task);
     }
 
-    private String prepareContent(TaskRequestDTO taskRequestDTO) {
-        String replacedPrompt = StringUtils.replace(prompt, "{SUBJECT}", taskRequestDTO.getSubject());
-        replacedPrompt = StringUtils.replace(replacedPrompt, "{SUBJECT_SECTION}", taskRequestDTO.getSubjectSection());
-        replacedPrompt = StringUtils.replace(replacedPrompt, "{HOBBY}", taskRequestDTO.getHobby());
-        return replacedPrompt;
+    private String preparePrompt(TaskRequestDTO taskRequestDTO) {
+        if(StringUtils.isEmpty(taskRequestDTO.getPredefinedPrompt())) {
+            String replacedPrompt = StringUtils.replace(PROMPT + PROMPT_SUFFIX, "{SUBJECT}", taskRequestDTO.getSubject());
+            replacedPrompt = StringUtils.replace(replacedPrompt, "{SUBJECT_SECTION}", taskRequestDTO.getSubjectSection());
+            replacedPrompt = StringUtils.replace(replacedPrompt, "{HOBBY}", taskRequestDTO.getHobby());
+            return replacedPrompt;
+        }
+
+        return taskRequestDTO.getPredefinedPrompt() + PROMPT_SUFFIX;
     }
 
     private Task prepareTask(ChatGptApiResponseDTO chatGptApiResponseDTO, String prompt) {

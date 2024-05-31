@@ -10,6 +10,7 @@ import lombok.NoArgsConstructor;
 public class TaskRequestDTO {
 
     private String subject;
+    private String predefinedPrompt;
     private String subjectSection;
     private String hobby;
 

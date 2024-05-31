@@ -2,7 +2,9 @@ package io.github.aieducationbackend.controller;
 
 import io.github.aieducationbackend.dto.TaskDTO;
 import io.github.aieducationbackend.dto.TaskRequestDTO;
+import io.github.aieducationbackend.service.PdfService;
 import io.github.aieducationbackend.service.TaskService;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -20,6 +22,7 @@ import java.util.UUID;
 public class TaskController {
 
     private final TaskService taskService;
+    private final PdfService pdfService;
 
     @PostMapping
     public ResponseEntity<TaskDTO> createTask(@RequestBody TaskRequestDTO taskRequestDTO) {
@@ -41,4 +44,21 @@ public class TaskController {
 
         return ResponseEntity.ok(taskDTO);
     }
+
+    @GetMapping("/{uuid}/pdf")
+    public void getTaskPdf(HttpServletResponse response, @PathVariable UUID uuid) {
+        TaskDTO taskDTO = taskService.getTask(uuid);
+        if (taskDTO == null) {
+            return;
+        }
+
+        response.setContentType("application/pdf");
+
+        String headerKey = "Content-Disposition";
+        String headerValue = "attachment; filename=Generated Task.pdf";
+        response.setHeader(headerKey, headerValue);
+
+        pdfService.export(response, taskDTO);
+    }
+
 }
