@@ -25,7 +25,7 @@ public class TaskService {
     private static final String CHAT_MODEL = "gpt-3.5-turbo";
     private static final String ROLE = "user";
     private static final String PROMPT_SUFFIX = " Pod tym wygeneruj 2 podpowiedzi do zadania i na koniec napisz odpowiedź. Wypisz wszystko w formacie Zadanie: *tutaj napisz tresc zadania* zrób \n\n i Podpowiedź 1: *Tutaj wypisz tresc podpowiedzi 1* zrób \n\n i Podpowiedź 2: *Tutaj wypisz tresc podpowiedzi 2* zrób \n\n i Odpowiedź: *Tutaj wypisz tresc odpowiedzi*.";
-    private static final String PROMPT = "Wygeneruj mi treść zadania z przedmiotu {SUBJECT} z działu \"{SUBJECT_SECTION}\". Nawiąż treścią zadania do hobby o tematyce {HOBBY}.";
+    private static final String PROMPT = "Wygeneruj mi treść zadania z przedmiotu {SUBJECT} z działu \"{SUBJECT_SECTION}\". Nawiąż treścią zadania do hobby o tematyce {HOBBY}. Weź pod uwagę że uczeń jest w {GRADE} klasie podstawowej.";
 
     private final ChatGptClient chatGptClient;
     private final TaskRepository taskRepository;
@@ -59,10 +59,11 @@ public class TaskService {
     }
 
     private String preparePrompt(TaskRequestDTO taskRequestDTO) {
-        if(StringUtils.isEmpty(taskRequestDTO.getPredefinedPrompt())) {
+        if (StringUtils.isEmpty(taskRequestDTO.getPredefinedPrompt())) {
             String replacedPrompt = StringUtils.replace(PROMPT + PROMPT_SUFFIX, "{SUBJECT}", taskRequestDTO.getSubject());
             replacedPrompt = StringUtils.replace(replacedPrompt, "{SUBJECT_SECTION}", taskRequestDTO.getSubjectSection());
             replacedPrompt = StringUtils.replace(replacedPrompt, "{HOBBY}", taskRequestDTO.getHobby());
+            replacedPrompt = StringUtils.replace(replacedPrompt, "{GRADE}", String.valueOf(taskRequestDTO.getGrade()));
             return replacedPrompt;
         }
 
@@ -87,7 +88,7 @@ public class TaskService {
             task.setContent(extractTaskContentFromResponse(content));
             task.setAnswer(extractAnswerFromResponse(content));
             task.setHints(Arrays.asList(extractFirstHintFromResponse(content), extractSecondHintFromResponse(content)));
-        }catch (Exception e){
+        } catch (Exception e) {
             throw new RuntimeException("Wystąpił błąd połączenia z ChatGPT");
         }
         return task;
