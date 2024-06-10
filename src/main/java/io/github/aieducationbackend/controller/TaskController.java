@@ -61,4 +61,9 @@ public class TaskController {
         pdfService.export(response, taskDTO);
     }
 
+    @GetMapping("/generated-amount")
+    public int getAmountOfGeneratedTasks() {
+        return taskService.getAmountOfGeneratedTasks();
+    }
+
 }

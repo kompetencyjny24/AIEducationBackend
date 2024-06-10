@@ -109,4 +109,8 @@ public class TaskService {
     private String extractAnswerFromResponse(String content) {
         return StringUtils.substringBetween(content, "Odpowiedź:", ".").trim();
     }
+
+    public int getAmountOfGeneratedTasks() {
+        return (int) taskRepository.count();
+    }
 }
