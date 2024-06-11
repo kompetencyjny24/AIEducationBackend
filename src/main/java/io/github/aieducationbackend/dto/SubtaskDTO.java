@@ -5,14 +5,14 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.util.List;
-import java.util.UUID;
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class TaskDTO {
+public class SubtaskDTO {
 
-    private UUID id;
-    private String prompt;
-    private List<SubtaskDTO> generatedTasks;
+    private String id;
+    private String content;
+    private String answer;
+    private List<String> hints;
 }

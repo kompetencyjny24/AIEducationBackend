@@ -1,33 +1,31 @@
 package io.github.aieducationbackend.entity;
 
-import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
+import jakarta.persistence.ElementCollection;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.OneToMany;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.util.List;
-import java.util.UUID;
 
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
-public class Task {
+public class Subtask {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
-    private UUID id;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
     @Column(length = 2048)
-    private String prompt;
+    private String content;
+    private String answer;
 
-    @OneToMany(cascade = CascadeType.ALL)
-    private List<Subtask> generatedTasks;
-
+    @ElementCollection
+    private List<String> hints;
 }

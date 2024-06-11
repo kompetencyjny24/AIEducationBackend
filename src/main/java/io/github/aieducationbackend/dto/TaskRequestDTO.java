@@ -13,6 +13,7 @@ public class TaskRequestDTO {
     private String predefinedPrompt;
     private String subjectSection;
     private String hobby;
+    private int taskAmount;
     private int grade;
 
 }

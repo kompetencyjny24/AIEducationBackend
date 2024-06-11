@@ -7,15 +7,19 @@ import io.github.aieducationbackend.dto.chatgpt.ChatGptApiRequestDTO;
 import io.github.aieducationbackend.dto.chatgpt.ChatGptApiRequestMessageDTO;
 import io.github.aieducationbackend.dto.chatgpt.ChatGptApiResponseChoiceDTO;
 import io.github.aieducationbackend.dto.chatgpt.ChatGptApiResponseDTO;
+import io.github.aieducationbackend.entity.Subtask;
 import io.github.aieducationbackend.entity.Task;
 import io.github.aieducationbackend.mapper.TaskMapper;
+import io.github.aieducationbackend.repository.SubtaskRepository;
 import io.github.aieducationbackend.repository.TaskRepository;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -24,11 +28,13 @@ public class TaskService {
 
     private static final String CHAT_MODEL = "gpt-3.5-turbo";
     private static final String ROLE = "user";
+    private static final String PROMPT_PLURAL_SUFFIX = " Pod tym wypisz tekst \nSEPARATOR\n I generuj kolejne zadania w takim samym formacie jak przed chwilą.";
     private static final String PROMPT_SUFFIX = " Pod tym wygeneruj 2 podpowiedzi do zadania i na koniec napisz odpowiedź. Wypisz wszystko w formacie Zadanie: *tutaj napisz tresc zadania* zrób \n\n i Podpowiedź 1: *Tutaj wypisz tresc podpowiedzi 1* zrób \n\n i Podpowiedź 2: *Tutaj wypisz tresc podpowiedzi 2* zrób \n\n i Odpowiedź: *Tutaj wypisz tresc odpowiedzi*.";
-    private static final String PROMPT = "Wygeneruj mi treść zadania z przedmiotu {SUBJECT} z działu \"{SUBJECT_SECTION}\". Nawiąż treścią zadania do hobby o tematyce {HOBBY}. Weź pod uwagę że uczeń jest w {GRADE} klasie podstawowej.";
+    private static final String PROMPT = "Wygeneruj mi treść {TASK_AMOUNT} z przedmiotu {SUBJECT} z działu \"{SUBJECT_SECTION}\". Nawiąż treścią zadania do hobby o tematyce {HOBBY}. Weź pod uwagę że uczeń jest w {GRADE} klasie podstawowej.";
 
     private final ChatGptClient chatGptClient;
     private final TaskRepository taskRepository;
+    private final SubtaskRepository subtaskRepository;
     private final TaskMapper taskMapper;
 
     public TaskDTO createTask(TaskRequestDTO taskRequestDTO) {
@@ -64,6 +70,14 @@ public class TaskService {
             replacedPrompt = StringUtils.replace(replacedPrompt, "{SUBJECT_SECTION}", taskRequestDTO.getSubjectSection());
             replacedPrompt = StringUtils.replace(replacedPrompt, "{HOBBY}", taskRequestDTO.getHobby());
             replacedPrompt = StringUtils.replace(replacedPrompt, "{GRADE}", String.valueOf(taskRequestDTO.getGrade()));
+
+            int taskAmount = taskRequestDTO.getTaskAmount();
+            String taskAmountString = taskAmount + (taskAmount == 1 ? " zadania" : " zadań");
+            replacedPrompt = StringUtils.replace(replacedPrompt, "{TASK_AMOUNT}", taskAmountString);
+
+            if(taskAmount > 1){
+                replacedPrompt += PROMPT_PLURAL_SUFFIX;
+            }
             return replacedPrompt;
         }
 
@@ -83,27 +97,42 @@ public class TaskService {
         String content = choiceDTO.getMessage().getContent();
 
         Task task = new Task();
-        task.setPrompt(prompt);
-        try {
-            task.setContent(extractTaskContentFromResponse(content));
-            task.setAnswer(extractAnswerFromResponse(content));
-            task.setHints(Arrays.asList(extractFirstHintFromResponse(content), extractSecondHintFromResponse(content)));
-        } catch (Exception e) {
-            throw new RuntimeException("Wystąpił błąd połączenia z ChatGPT");
+        task.setPrompt(StringUtils.substringBefore(prompt, PROMPT_SUFFIX));
+
+        String[] separatedTasks = content.split("SEPARATOR");
+
+        List<Subtask> subtasks = new ArrayList<>();
+        for (String separatedTask : separatedTasks) {
+            subtasks.add(prepareSubtask(separatedTask));
         }
+
+        task.setGeneratedTasks(subtasks);
         return task;
     }
 
+    private Subtask prepareSubtask(String content){
+        Subtask subtask = new Subtask();
+        try {
+            subtask.setContent(extractTaskContentFromResponse(content));
+            subtask.setAnswer(extractAnswerFromResponse(content));
+            subtask.setHints(Arrays.asList(extractFirstHintFromResponse(content), extractSecondHintFromResponse(content)));
+        } catch (Exception e) {
+            throw new RuntimeException("Wystąpił błąd połączenia z ChatGPT");
+        }
+
+        return subtask;
+    }
+
     private String extractTaskContentFromResponse(String content) {
-        return StringUtils.substringBetween(content, "Zadanie:", "\n\n").trim();
+        return StringUtils.substringBetween(content, "Zadanie:", "\n").trim();
     }
 
     private String extractFirstHintFromResponse(String content) {
-        return StringUtils.substringBetween(content, "Podpowiedź 1:", "\n\n").trim();
+        return StringUtils.substringBetween(content, "Podpowiedź 1:", "\n").trim();
     }
 
     private String extractSecondHintFromResponse(String content) {
-        return StringUtils.substringBetween(content, "Podpowiedź 2:", "\n\n").trim();
+        return StringUtils.substringBetween(content, "Podpowiedź 2:", "\n").trim();
     }
 
     private String extractAnswerFromResponse(String content) {
@@ -111,6 +140,6 @@ public class TaskService {
     }
 
     public int getAmountOfGeneratedTasks() {
-        return (int) taskRepository.count();
+        return (int) subtaskRepository.count();
     }
 }
