@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.UUID;
@@ -46,19 +47,18 @@ public class TaskController {
     }
 
     @GetMapping("/{uuid}/pdf")
-    public void getTaskPdf(HttpServletResponse response, @PathVariable UUID uuid) {
+    public void getTaskPdf(HttpServletResponse response, @PathVariable UUID uuid, @RequestParam boolean onlyContent) {
         TaskDTO taskDTO = taskService.getTask(uuid);
         if (taskDTO == null) {
             return;
         }
 
         response.setContentType("application/pdf");
-
         String headerKey = "Content-Disposition";
         String headerValue = "attachment; filename=Generated Task.pdf";
         response.setHeader(headerKey, headerValue);
 
-        pdfService.export(response, taskDTO);
+        pdfService.export(response, taskDTO, onlyContent);
     }
 
     @GetMapping("/generated-amount")

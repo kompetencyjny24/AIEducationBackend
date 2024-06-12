@@ -51,6 +51,12 @@ public class TaskService {
 
         ChatGptApiResponseDTO chatGptApiResponseDTO = chatGptClient.sendPrompt(chatGptApiRequestDto);
         Task task = prepareTask(chatGptApiResponseDTO, prompt);
+        task.setTaskAmount(taskRequestDTO.getTaskAmount());
+        task.setGrade(taskRequestDTO.getGrade());
+        task.setPredefinedPrompt(taskRequestDTO.getPredefinedPrompt());
+        task.setSubject(taskRequestDTO.getSubject());
+        task.setSubjectSection(taskRequestDTO.getSubjectSection());
+        task.setHobby(taskRequestDTO.getHobby());
         taskRepository.save(task);
         return taskMapper.taskToTaskDTO(task);
     }
@@ -72,7 +78,7 @@ public class TaskService {
             replacedPrompt = StringUtils.replace(replacedPrompt, "{GRADE}", String.valueOf(taskRequestDTO.getGrade()));
 
             int taskAmount = taskRequestDTO.getTaskAmount();
-            String taskAmountString = taskAmount + (taskAmount == 1 ? " zadania" : " zadań");
+            String taskAmountString = taskAmount + (taskAmount == 1 ? " zadania otwartego " : " zadań otwartych ");
             replacedPrompt = StringUtils.replace(replacedPrompt, "{TASK_AMOUNT}", taskAmountString);
 
             if(taskAmount > 1){

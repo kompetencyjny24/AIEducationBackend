@@ -27,7 +27,15 @@ public class Task {
     @Column(length = 2048)
     private String prompt;
 
+    @Column(length = 2048)
+    private String predefinedPrompt;
+
     @OneToMany(cascade = CascadeType.ALL)
     private List<Subtask> generatedTasks;
+    private String subject;
+    private String subjectSection;
+    private String hobby;
+    private int taskAmount;
+    private int grade;
 
 }
