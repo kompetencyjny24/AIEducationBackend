@@ -34,13 +34,14 @@ public class PdfService {
 
         document.open();
 
+        boolean addHobby = taskDTO.getHobby() != null && !taskDTO.getHobby().isEmpty();
         PdfPTable table = new PdfPTable(2);
         table.setWidthPercentage(100);
         table.getDefaultCell().setBorder(Rectangle.NO_BORDER);
         table.getDefaultCell().setHorizontalAlignment(Element.ALIGN_LEFT);
         table.addCell("Przedmiot: " + taskDTO.getSubject() +
                 "\nDział: " + taskDTO.getSubjectSection() +
-                "\nHobby: " + taskDTO.getHobby());
+                (addHobby ? ("\nHobby: " + taskDTO.getHobby()) : ""));
         table.getDefaultCell().setHorizontalAlignment(Element.ALIGN_RIGHT);
         table.addCell("Data: " + LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd")));
 
