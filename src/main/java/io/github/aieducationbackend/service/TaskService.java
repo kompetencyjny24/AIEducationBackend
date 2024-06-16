@@ -1,6 +1,7 @@
 package io.github.aieducationbackend.service;
 
 import io.github.aieducationbackend.client.ChatGptClient;
+import io.github.aieducationbackend.dto.SubtaskDTO;
 import io.github.aieducationbackend.dto.TaskDTO;
 import io.github.aieducationbackend.dto.TaskRequestDTO;
 import io.github.aieducationbackend.dto.chatgpt.ChatGptApiRequestDTO;
@@ -51,6 +52,10 @@ public class TaskService {
 
         ChatGptApiResponseDTO chatGptApiResponseDTO = chatGptClient.sendPrompt(chatGptApiRequestDto);
         Task task = prepareTask(chatGptApiResponseDTO, prompt);
+        if (task.getGeneratedTasks().size() != taskRequestDTO.getTaskAmount()) {
+            throw new RuntimeException("Wygenerowano błędną ilosć zadań");
+        }
+
         task.setTaskAmount(taskRequestDTO.getTaskAmount());
         task.setGrade(taskRequestDTO.getGrade());
         task.setPredefinedPrompt(taskRequestDTO.getPredefinedPrompt());
@@ -81,13 +86,14 @@ public class TaskService {
             String taskAmountString = taskAmount + (taskAmount == 1 ? " zadania otwartego " : " zadań otwartych ");
             replacedPrompt = StringUtils.replace(replacedPrompt, "{TASK_AMOUNT}", taskAmountString);
 
-            if(taskAmount > 1){
+            if (taskAmount > 1) {
                 replacedPrompt += PROMPT_PLURAL_SUFFIX;
             }
+
             return replacedPrompt;
         }
 
-        return taskRequestDTO.getPredefinedPrompt() + PROMPT_SUFFIX;
+        return taskRequestDTO.getPredefinedPrompt() + PROMPT_SUFFIX + " Jesli zadań jest więcej niż jedno to " + PROMPT_PLURAL_SUFFIX;
     }
 
     private Task prepareTask(ChatGptApiResponseDTO chatGptApiResponseDTO, String prompt) {
@@ -116,7 +122,7 @@ public class TaskService {
         return task;
     }
 
-    private Subtask prepareSubtask(String content){
+    private Subtask prepareSubtask(String content) {
         Subtask subtask = new Subtask();
         try {
             subtask.setContent(extractTaskContentFromResponse(content));
@@ -147,5 +153,18 @@ public class TaskService {
 
     public int getAmountOfGeneratedTasks() {
         return (int) subtaskRepository.count();
+    }
+
+    public TaskDTO editSubtasks(UUID uuid, List<SubtaskDTO> subtaskDTOList) {
+        Task task = taskRepository.findById(uuid)
+                .orElse(null);
+
+        if (task == null) {
+            return null;
+        }
+
+        task.setGeneratedTasks(taskMapper.subtaskDTOListToSubtaskList(subtaskDTOList));
+        taskRepository.save(task);
+        return taskMapper.taskToTaskDTO(task);
     }
 }

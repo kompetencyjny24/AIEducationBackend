@@ -4,6 +4,7 @@ import com.lowagie.text.Chunk;
 import com.lowagie.text.Document;
 import com.lowagie.text.Element;
 import com.lowagie.text.Font;
+import com.lowagie.text.Image;
 import com.lowagie.text.PageSize;
 import com.lowagie.text.Paragraph;
 import com.lowagie.text.Rectangle;
@@ -19,7 +20,6 @@ import java.awt.*;
 import java.io.IOException;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-
 
 @Service
 public class PdfService {
@@ -56,6 +56,13 @@ public class PdfService {
             }
         }
 
+        try {
+            com.lowagie.text.Image image = Image.getInstance(PdfService.class.getResource("/logo.png"));
+            image.setAlignment(Element.ALIGN_CENTER);
+            document.add(image);
+        } catch (Exception ignored) {
+        }
+
         document.close();
     }
 
@@ -79,9 +86,11 @@ public class PdfService {
         p.setAlignment(Paragraph.ALIGN_CENTER);
         document.add(p);
 
-        Paragraph content = new Paragraph(subtaskDTO.getContent() + "\n\n", mediumFont);
-        content.setAlignment(Element.ALIGN_LEFT);
-        document.add(content);
+        if (onlyContent) {
+            Paragraph content = new Paragraph(subtaskDTO.getContent() + "\n\n", mediumFont);
+            content.setAlignment(Element.ALIGN_LEFT);
+            document.add(content);
+        }
 
         if (!onlyContent) {
             p = new Paragraph("Podpowiedź 1: \n", smallFont);

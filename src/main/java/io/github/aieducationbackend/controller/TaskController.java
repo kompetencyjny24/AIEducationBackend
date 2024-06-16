@@ -1,5 +1,6 @@
 package io.github.aieducationbackend.controller;
 
+import io.github.aieducationbackend.dto.SubtaskDTO;
 import io.github.aieducationbackend.dto.TaskDTO;
 import io.github.aieducationbackend.dto.TaskRequestDTO;
 import io.github.aieducationbackend.service.PdfService;
@@ -10,11 +11,13 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.List;
 import java.util.UUID;
 
 @RestController()
@@ -64,6 +67,16 @@ public class TaskController {
     @GetMapping("/generated-amount")
     public int getAmountOfGeneratedTasks() {
         return taskService.getAmountOfGeneratedTasks();
+    }
+
+    @PutMapping
+    public ResponseEntity<TaskDTO> editTask(@RequestParam UUID uuid, @RequestBody List<SubtaskDTO> subtaskDTOList) {
+        TaskDTO taskDTO = taskService.editSubtasks(uuid, subtaskDTOList);
+        if (taskDTO == null) {
+            return ResponseEntity.notFound().build();
+        }
+
+        return ResponseEntity.ok(taskDTO);
     }
 
 }
