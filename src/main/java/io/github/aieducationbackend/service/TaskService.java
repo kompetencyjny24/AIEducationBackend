@@ -163,7 +163,14 @@ public class TaskService {
             return null;
         }
 
-        task.setGeneratedTasks(taskMapper.subtaskDTOListToSubtaskList(subtaskDTOList));
+        task.getGeneratedTasks().forEach(subtask -> subtaskDTOList.forEach(subtaskDTO -> {
+           if(subtask.getId().equals(subtaskDTO.getId())){
+               subtask.setAnswer(subtaskDTO.getAnswer());
+               subtask.setHints(subtaskDTO.getHints());
+               subtask.setContent(subtaskDTO.getContent());
+           }
+        }));
+
         taskRepository.save(task);
         return taskMapper.taskToTaskDTO(task);
     }

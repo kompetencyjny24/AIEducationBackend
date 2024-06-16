@@ -11,7 +11,7 @@ import java.util.List;
 @AllArgsConstructor
 public class SubtaskDTO {
 
-    private String id;
+    private Long id;
     private String content;
     private String answer;
     private List<String> hints;
